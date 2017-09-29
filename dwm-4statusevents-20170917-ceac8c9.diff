@@ -1,0 +1,65 @@
+diff --git a/config.def.h b/config.def.h
+index a9ac303..b9fe2bb 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -97,13 +97,23 @@ static Key keys[] = {
+ };
+ 
+ /* button definitions */
+-/* click can be ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
++/* click can be ClkLtSymbol, ClkStatusText{1,2,3,4}, ClkWinTitle, ClkClientWin, or ClkRootWin */
++
++/* Position of ClkStatusText{1,2,3,4} in Pixel from the right side of the monitor */
++int Text1 = 128; /* e.g. Date  */
++int Text2 = 155; /* e.g. Sound */
++int Text3 = 202; /* e.g. Sys   */
++/*  Text4 is everythig right from Text3 */
++
+ static Button buttons[] = {
+ 	/* click                event mask      button          function        argument */
+ 	{ ClkLtSymbol,          0,              Button1,        setlayout,      {0} },
+ 	{ ClkLtSymbol,          0,              Button3,        setlayout,      {.v = &layouts[2]} },
+ 	{ ClkWinTitle,          0,              Button2,        zoom,           {0} },
+-	{ ClkStatusText,        0,              Button2,        spawn,          {.v = termcmd } },
++	{ ClkStatusText1,       0,              Button1,        spawn,          {.v = termcmd } },
++	{ ClkStatusText2,       0,              Button1,        spawn,          {.v = termcmd } },
++	{ ClkStatusText3,       0,              Button1,        spawn,          {.v = termcmd } },
++	{ ClkStatusText4,       0,              Button1,        spawn,          {.v = termcmd } },
+ 	{ ClkClientWin,         MODKEY,         Button1,        movemouse,      {0} },
+ 	{ ClkClientWin,         MODKEY,         Button2,        togglefloating, {0} },
+ 	{ ClkClientWin,         MODKEY,         Button3,        resizemouse,    {0} },
+diff --git a/dwm.c b/dwm.c
+index a5ce993..bb48ea0 100644
+--- a/dwm.c
++++ b/dwm.c
+@@ -65,8 +65,8 @@ enum { NetSupported, NetWMName, NetWMState, NetWMCheck,
+        NetWMFullscreen, NetActiveWindow, NetWMWindowType,
+        NetWMWindowTypeDialog, NetClientList, NetLast }; /* EWMH atoms */
+ enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* default atoms */
+-enum { ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle,
+-       ClkClientWin, ClkRootWin, ClkLast }; /* clicks */
++enum { ClkTagBar, ClkLtSymbol, ClkStatusText1, ClkStatusText2, ClkStatusText3,
++       ClkStatusText4, ClkWinTitle, ClkClientWin, ClkRootWin, ClkLast }; /* clicks */
+ 
+ typedef union {
+ 	int i;
+@@ -440,9 +440,16 @@ buttonpress(XEvent *e)
+ 			arg.ui = 1 << i;
+ 		} else if (ev->x < x + blw)
+ 			click = ClkLtSymbol;
+-		else if (ev->x > selmon->ww - TEXTW(stext))
+-			click = ClkStatusText;
+-		else
++		else if (ev->x > selmon->ww - TEXTW(stext)) {
++			if (ev->x > selmon->ww - Text1)
++				click = ClkStatusText1;
++			else if (ev->x > selmon->ww - Text2)
++				click = ClkStatusText2;
++			else if (ev->x > selmon->ww - Text3)
++				click = ClkStatusText3;
++			else
++				click = ClkStatusText4;
++		} else
+ 			click = ClkWinTitle;
+ 	} else if ((c = wintoclient(ev->window))) {
+ 		focus(c);
